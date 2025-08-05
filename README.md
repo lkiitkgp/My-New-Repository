@@ -27,11 +27,12 @@ The `executeGraph` function will be modified to work as follows:
 
 Interruptions (e.g., `awaiting-approval`, `awaiting-tool-input`) need to be handled carefully in a parallel environment.
 
--   When a block is interrupted, the execution of that block will be paused.
--   Other independent blocks will continue to execute in parallel.
--   The overall workflow status will be set to "waiting" until the interruption is resolved.
+-   When a block requires an interruption, its execution is paused, and the workflow status is set to "waiting".
+-   To avoid a breaking API change in the `resumeWorkflow` function (which does not accept a `blockId`), the current implementation imposes a critical limitation: **only one block can be in an interrupted state at any given time.**
+-   The execution engine will prevent a second block from entering an interrupted state if another one is already waiting for user action. Other independent blocks that do not require interruption can continue to execute in parallel.
+-   This ensures that when a resume request is received, there is no ambiguity about which block to resume.
 
-To manage this, we will introduce a new `InterruptionStatus` enum to provide a clear and robust way to track the state of each interruption.
+To manage the various interruption states cleanly, we will introduce a new `InterruptionStatus` enum. This will provide a clear and robust way to track the state of each interruption.
 
 ### 3.3. Resuming from Interruptions
 
